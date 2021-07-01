@@ -13,7 +13,7 @@ Discord emojis without the hassle -->
 ```html
 <!DOCTYPE html>
 <body>
-    <div discomoji>Example Text [a:speen:847583231850446858]</div> <!-- discomoji element-->
+    <div discomoji>Example Text a:speen:847583231850446858 </div> <!-- discomoji element-->
     <script type="text/javascript" src="discomoji.js"></script> <!-- Load discomoji.js library at the bottom of body -->
 </body>
 ```
@@ -27,5 +27,16 @@ height:         "auto", // Emoji Height
 offsetY:        (parseFloat(window.getComputedStyle(this.element, null).getPropertyValue("font-size")) / 6) + "px", // Emoji shift up/down
 offsetX:        0, // Emoji shift left/right
 animated:       true, // Allow emojis to be animated or not
-"user-drag":    "none" // Allow emojis to be draggable or not
+"user-select":  "none" // Allow emojis to be draggable or not
+hoverinfo:      false // Displays emojis tag when hovered over
 ```
+
+# Emoji Formats
+(the animated emoji `a:speen:847583231850446858` is being used in these examples)
+
+* `' a:speen:847583231850446858 '`
+* `'<a:speen:847583231850446858>'`
+* `'[a:speen:847583231850446858]'`
+* `'(a:speen:847583231850446858)'`
+
+Only emoji's that follow this format will be converted by discomoji. (both animated/static emoji formats are accepted)

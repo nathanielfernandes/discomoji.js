@@ -1,12 +1,54 @@
 const EMOJI_ENDPOINT = "https://cdn.discordapp.com/emojis/";
 const STATIC = ".png?v=1";
-const ANIMATED = ".gif?v=1";
-const EMOJI = /[\[|&lt;|<]a?:\w+:?(\d+)[\]|&gt;|>]/g
+const ANIMATED = "";
+const EMOJI = /(?:\[|<|\s|\()a?:\w+:?(\d+)(?:\]|>|\s|\))/g
+const STYLES = `
+/* styles injected by discomoji.js */
+.discomoji-emoji{
+    position: relative;
+    display: inline-block;
+  }
+  
+  .discomoji-emoji .discomoji-hover {
+    font-size: 12px;
+    visibility: hidden;
+    width: auto;
+    background-color: #222;
+    color: white;
+    text-align: center;
+    border-radius: 5px;
+    padding: 5px 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 105%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .discomoji-emoji .discomoji-hover::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #222 transparent transparent transparent;
+  }
+  
+  .discomoji-emoji:hover .discomoji-hover {
+    visibility: visible;
+    opacity: 1;
+  }`
 
-var Discomoji = (function () {
+
+var css_inserted = false;
+
+Discomoji = (function () {
     'use strict';
-    /*Created by: Nathaniel Fernandes
-      Date:       28/6/2021 */
+
     class Discomoji {
         constructor(element, settings = {}) {
             if (!(element instanceof Node)) {
@@ -19,19 +61,43 @@ var Discomoji = (function () {
         }
 
         genImageTag(pack) {
-            return `<img 
-                    src='${EMOJI_ENDPOINT}${pack[1]}${((this.settings.animated && pack[0].includes("[a:")) ? ANIMATED : STATIC)}' 
+            var imgTag = `<img 
+                    src='${EMOJI_ENDPOINT}${pack[1]}${((this.settings.animated) ? ANIMATED : STATIC)}' 
+                    title='${(!this.settings.hoverable) ? pack[0].replace(/(?:\[|&lt;|<|\s|\(|\]|&gt;|>|\s|\))/g, '') : ''}'
                     width='${this.settings.width}' 
                     height='${this.settings.height}' 
                     style='transform:translate(${this.settings.offsetX}, ${this.settings.offsetY}); max-height:${this.settings['font-size']};
-                    user-drag: ${this.settings['user-drag']}; 
-                    user-select: ${this.settings['user-drag']};
-                    -moz-user-select: ${this.settings['user-drag']};
-                    -webkit-user-drag: ${this.settings['user-drag']};
-                    -webkit-user-select: ${this.settings['user-drag']};
-                    -ms-user-select: ${this.settings['user-drag']};'
-                    >`
+                    user-select: ${this.settings['user-select']};
+                    -moz-user-select: ${this.settings['user-select']};
+                    -webkit-user-drag: ${this.settings['user-select']};
+                    -webkit-user-select: ${this.settings['user-select']};
+                    -ms-user-select: ${this.settings['user-select']};'
+                    >`;
+
+            if (this.settings.hoverinfo) {
+                this.insertCss();
+                imgTag = `
+                <div class="discomoji-emoji">
+                    ${imgTag}
+                    <span class="discomoji-hover">${pack[0].replace(/(?:\[|&lt;|<|\s|\(|\]|&gt;|>|\s|\))/g, '')}</span>
+                </div>`
+            }
+            return imgTag;
         }
+
+        insertCss() {
+            if (!css_inserted) {
+                var styles = document.createElement('style');
+                if (styles.styleSheet)
+                    styles.styleSheet.cssText = STYLES;
+                else
+                    styles.appendChild(document.createTextNode(STYLES));
+
+                document.getElementsByTagName('head')[0].appendChild(styles);
+                css_inserted = true;
+            };
+        }
+
 
         replaceEmoji(pack) {
             this.element.innerHTML = this.element.innerHTML.replace(pack[0], this.genImageTag(pack));
@@ -49,7 +115,8 @@ var Discomoji = (function () {
                 offsetY: (parseFloat(window.getComputedStyle(this.element, null).getPropertyValue("font-size")) / 6) + "px",
                 offsetX: 0,
                 animated: true,
-                "user-drag": "none"
+                "user-select": "none",
+                hoverinfo: false
             };
             let newSettings = {};
             for (var property in defaultSettings) {
